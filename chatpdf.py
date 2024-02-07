@@ -7,21 +7,21 @@ import pandas as pd
 #env
 env = ".env"
 load_dotenv(env)
-API_KEY = os.getenv('headers')
+API_KEY = os.getenv('BASEAPI_TOKEN')
 
-files = os.listdir('./')
+files = os.listdir('./arquivos')
 #print(files)
 
-curriculum = [file for file in files if file.endswith('.docx')][0]
+curriculum = [file for file in files if file.endswith('.docx')]
 #print(curriculum)
 
 #transform word to pdf
-doc = aw.Document(curriculum)
-doc.save("curriculum.pdf")
-doc = [file for file in files if file.endswith('.pdf')][0]
+for c in curriculum:
+    doc = aw.Document('./arquivos/'+c)
+    doc.save('./curriculum/'+c+'.pdf')
 
-def req(document,questions):
-    #upload
+#upload
+def uploadFile(document):
     headers =  {'x-api-key': API_KEY,
     }
 
@@ -37,13 +37,18 @@ def req(document,questions):
     if response.status_code == 200:
         print('Source ID:', response.json()['sourceId'])
         source_ID = response.json()['sourceId']
+        return source_ID
     else:
         print('Status:', response.status_code)
         print('Error:', response.text)
 
-    #asking-request
+#asking-request
+def askingReq(src_id,questions):
+    headers =  {'x-api-key': API_KEY,
+    }
+
     data = {
-    "sourceId": source_ID,
+    "sourceId": src_id,
     "messages": [
         {
         "role": "user",
@@ -65,15 +70,26 @@ def req(document,questions):
 
 questions = ['Responda de forma abreviada. Qual o nome da pessoa?','Responda de forma abreviada. Qual a profisssão da pessoa?','Responda de forma abreviada. Qual a localidade da pessoa?','Responda de forma abreviada. Qual o cargo atual?']
 
-data = {}
+pdfs = os.listdir('./curriculum')
+documents = [pdf for pdf in pdfs if pdf.endswith('.pdf')]
 
-for question in questions:
-    re = req(doc, question)
-    coluna = f'Pergunta{questions.index(question)}'
-    data[coluna] = [re]
+data = pd.DataFrame()
 
-df = pd.DataFrame(data)
-#print(df)
-#rename-columns
-df.rename(columns={'Pergunta0':'nome','Pergunta1':'profisssao','Pergunta2':'localidade','Pergunta3':'cargo_atual'}, inplace=True)
-df.to_csv('informacao.csv', index=False)
+for doc in documents:
+    curriculo_selecionado = './curriculum/'+doc
+    print(curriculo_selecionado)
+    response = []
+    cod_document = uploadFile(curriculo_selecionado)
+
+    for question in questions:
+        re = askingReq(cod_document, question)
+        columns = f'Pergunta{questions.index(question)}'
+        response.append(re)
+
+    new_line = pd.DataFrame({'nome': [response[0]], 'profissao': [response[1]], 'localidade': [response[2]], 'cargo_atual': [response[3]]})
+    data = pd.concat([data, new_line], ignore_index=True)
+        
+#print(data)
+# rename-columns
+#data.rename(columns={'Pergunta0':'nome','Pergunta1':'profissao','Pergunta2':'localidade','Pergunta3':'cargo_atual'}, inplace=True)
+data.to_csv('informacao.csv', index=False)
