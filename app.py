@@ -2,18 +2,27 @@ import streamlit as st
 import pandas as pd
 
 data = pd.read_csv('informacao.csv')
-data
+st.dataframe(data)
 
 # Add a slider to the sidebar:
-add_selectbox = st.sidebar.selectbox(
+box_local = st.sidebar.selectbox(
     'Buscar candidato por localidade',
     (data['localidade'])
 )
-add_selectbox = st.sidebar.selectbox(
+box_profession = st.sidebar.selectbox(
     'Buscar candidato por profissão',
     (data['profissao'])
 )
-add_selectbox = st.sidebar.selectbox(
+box_office = st.sidebar.selectbox(
     'Buscar candidato por cargo',
-    (data['cargo_atual'])
+    (data['cargo_atual']),
 )
+
+#visualização-filtro
+filter_local = data[data['localidade'] == box_local]
+st.write(filter_local)
+
+if box_local != '':
+    st.write(filter_local)
+else:
+    st.write(data)
