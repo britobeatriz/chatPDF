@@ -24,17 +24,8 @@ box_office = st.sidebar.selectbox(
     placeholder="Selecione o cargo"
 )
 #visualização-filtro
-filter_local = data[data['localidade'] == box_local]
-if box_local == True:
-    st.write("Filtro:")
-    st.write(filter_local)
-
-# filter_profession = data[data['profissao'] == box_profession]
-# if box_profession:
+# filter_local = data[data['localidade'] == box_local]
+# if box_local:
 #     st.write("Filtro:")
-#     st.write(filter_profession)
-
-# filter_office = data[data['cargo_atual'] == box_office]
-# if box_office:
-#     st.write("Filtro:")
-#     st.write(filter_office)
+#     st.write(filter_local)
+    
